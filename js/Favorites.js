@@ -8,22 +8,34 @@ export class Favorites {
   }
 
   load(){
-    this.entries = [
-      {
-      login: 'alexandretortora',
-      name: 'Alexandre Tortora',
-      public_repos: '81',
-      followers: '9589'
-      },
-      {
-        login: 'mauriciosantos',
-        name: 'Maurício Santos',
-        public_repos: '103',
-        followers: '11000'
-      }
-    ]
+    this.entries = JSON.parse(localStorage.getItem
+      ('@github-favorites:')) || []
+    
+    // this.entries = [
+    //   {
+    //   login: 'alexandretortora',
+    //   name: 'Alexandre Tortora',
+    //   public_repos: '81',
+    //   followers: '9589'
+    //   },
+    //   {
+    //     login: 'mauriciosantos',
+    //     name: 'Maurício Santos',
+    //     public_repos: '103',
+    //     followers: '11384'
+    //   }
+    // ]
+  }
+
+  delete(user) {
+    const filteredEntries = this.entries
+      .filter(entry => entry.login !== user.login)
+
+    this.entries = filteredEntries
+    this.update()
   }
 }
+
 
 export class FavoritesView extends Favorites {
   constructor(root) {
@@ -35,8 +47,6 @@ export class FavoritesView extends Favorites {
   update() {
     this.removeAllTr()  
 
-
-    
     this.entries.forEach(user => {
       const row = this.createRow()
 
@@ -48,7 +58,12 @@ export class FavoritesView extends Favorites {
       row.querySelector('.followers').textContent = user.followers
 
       
-
+      row.querySelector('.remove').onclick = () => {
+        const isOk = confirm('Tem certeza que deseja remover essa linha?')
+        if (isOk) {
+          this.delete(user)
+        }
+      }
 
       this.tbody.append(row)
     }) 
