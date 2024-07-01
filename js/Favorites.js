@@ -1,17 +1,5 @@
-export class GithubUser {
-  static search(username) {
-    const endpoint = `https://api.github.com/users/${username}`
+import { GithubUser } from "./GithubUser.js"
 
-    return fetch(endpoint)
-    .then(data => data.json())
-    .then(({ login, name, public_repos, followers }) => ({
-      login,
-      name,
-      public_repos,
-      followers
-    }))
-  }
-}
 export class Favorites {
   constructor(root) {
     this.root = document.querySelector(root)
@@ -36,8 +24,33 @@ export class Favorites {
       ('@github-favorites:')) || []
   }
 
+  save() {
+    localStorage.setItem
+      ('@github-favorites:', JSON.stringify(this.entries))
+  }
+
   async add(username){
-    const user = await GithubUser.search(username)
+    try{
+
+      const userExists = this.entries
+        .find(user => user.login === username)
+      
+      if(userExists){
+        throw new Error('User already registered')
+      }
+
+      const user = await GithubUser.search(username)
+      if(user.login === undefined){
+        throw new Error('User not found')
+      }
+
+      this.entries = [user, ...this.entries]
+      this.update()
+      this.save()
+
+    } catch(error){
+      alert(error.message)
+    }
   }
 
   delete(user) {
@@ -46,6 +59,7 @@ export class Favorites {
 
     this.entries = filteredEntries
     this.update()
+    this.save()
   }
 }
 
@@ -65,6 +79,7 @@ export class FavoritesView extends Favorites {
 
       row.querySelector('.user img').src = `https://github.com/${user.login}.png`
       row.querySelector('.user p').textContent = user.name
+      row.querySelector('.user a').href = `https://github.com/${user.login}`
       row.querySelector('.user span').textContent = `@${user.login}`
 
       row.querySelector('.repositories').textContent = user.public_repos
@@ -72,7 +87,7 @@ export class FavoritesView extends Favorites {
 
       
       row.querySelector('.remove').onclick = () => {
-        const isOk = confirm('Tem certeza que deseja remover essa linha?')
+        const isOk = confirm('Are you sure you want to remove this line?')
         if (isOk) {
           this.delete(user)
         }
